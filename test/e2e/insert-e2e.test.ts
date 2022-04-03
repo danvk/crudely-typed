@@ -1,6 +1,6 @@
-import {TypedSQL} from '../db-utils';
-import {tables} from './dbschema';
-import {getDbForTests} from './test-utils';
+import {TypedSQL} from '../../src/db-utils';
+import {tables} from '../dbschema';
+import {getDbForTests} from '../test-utils';
 
 const typedDb = new TypedSQL(tables);
 

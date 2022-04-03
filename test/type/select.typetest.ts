@@ -1,7 +1,7 @@
 /// Testing ////
 
-import {any, Queryable, TypedSQL} from '../db-utils';
-import {tables} from './dbschema';
+import {any, Queryable, TypedSQL} from '../../src/db-utils';
+import {tables} from '../dbschema';
 
 declare let db: Queryable;
 const typedDb = new TypedSQL(tables);

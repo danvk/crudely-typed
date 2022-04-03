@@ -1,6 +1,6 @@
-import {any, TypedSQL} from '../db-utils';
-import {tables} from './dbschema';
-import {mockDb} from './test-utils';
+import {any, TypedSQL} from '../../src/db-utils';
+import {tables} from '../dbschema';
+import {mockDb} from '../test-utils';
 
 const typedDb = new TypedSQL(tables);
 

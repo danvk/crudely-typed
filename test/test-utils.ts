@@ -1,6 +1,6 @@
 import {Pool} from 'pg';
 
-import {Queryable} from '../db-utils';
+import {Queryable} from '../src/db-utils';
 
 export function getDbForTests() {
   if (!process.env.POSTGRES_URL) {
