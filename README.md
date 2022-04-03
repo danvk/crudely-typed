@@ -7,7 +7,7 @@ TODO:
 - [ ] Publish to npm
 - [ ] Settle on name
 - [ ] Write docs
-- [ ] Test in cityci
+- [ ] Test in cityci (requires publishing new pg-to-ts with `$type`)
 - [ ] Set up CI
 - [ ] Split select unit/type tests
 - [ ] Check types in type tests
