@@ -2,7 +2,7 @@
   "name": "crudely-typed",
   "version": "0.1.0",
   "description": "Simple \"everyday CRUD\" Postgres queries with perfect TypeScript types",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "repository": "https://github.com/danvk/crudely-typed.git",
   "author": "Dan Vanderkam <danvdk@gmail.com>",
   "license": "MIT",
