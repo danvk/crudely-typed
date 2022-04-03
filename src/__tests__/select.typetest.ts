@@ -1,6 +1,6 @@
 /// Testing ////
 
-import {any, Queryable, TypedSQL} from './db-utils';
+import {any, Queryable, TypedSQL} from '../db-utils';
 import {tables} from './dbschema';
 
 declare let db: Queryable;
