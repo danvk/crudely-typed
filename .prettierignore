@@ -7,3 +7,4 @@ coverage
 .vscode
 *.md
 .nyc_output
+dbschema.ts
