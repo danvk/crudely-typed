@@ -1,4 +1,4 @@
-import {any, TypedSQL} from '../../src/db-utils';
+import {any, TypedSQL} from '../../src';
 import {tables} from '../dbschema';
 import {getDbForTests} from '../test-utils';
 
