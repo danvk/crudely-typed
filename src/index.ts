@@ -424,6 +424,9 @@ class InsertMultiple<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
           throw new Error(`Cannot insert disallowed column(s) ${illegalCols}`);
         }
       }
+      if (rows.length === 0) {
+        return []; // TODO(danvk): consider throwing in this case
+      }
       const keys = allowedColumns.filter(col => rows[0][col] !== undefined);
       const colsSql = keys.join(', ');
       let placeholder = 1;
@@ -548,23 +551,28 @@ class Update<
 
     // In this case the query is dynamic.
     // TODO: reduce duplication here, the code paths are pretty similar.
+    // TODO: major shadowing bugs here
     return async (db, whereObj: any, updateObj: any) => {
       // TODO: maybe better to get this from the schema?
-      const setCols = Object.keys(updateObj);
+      const dynamicSetCols = Object.keys(updateObj);
       const vals = whereKeys
         .map(col =>
           whereObj[col] instanceof Set
             ? Array.from(whereObj[col])
             : whereObj[col],
         )
-        .concat(setCols.map(col => updateObj[col]));
-      for (const col of setCols) {
-        setKeys.push(col);
-        const n = placeholder++;
-        setClauses.push(`${col} = $${n}`);
+        .concat(dynamicSetCols.map(col => updateObj[col]));
+
+      let dynamicPlaceholder = placeholder;
+      const dynamicSetKeys: string[] = [];
+      const dynamicSetClauses: string[] = [];
+      for (const col of dynamicSetCols) {
+        dynamicSetKeys.push(col);
+        const n = dynamicPlaceholder++;
+        dynamicSetClauses.push(`${col} = $${n}`);
       }
-      const query = setCols
-        ? `UPDATE ${this.table} SET ${setClauses.join(
+      const query = dynamicSetCols
+        ? `UPDATE ${this.table} SET ${dynamicSetClauses.join(
             ', ',
           )}${whereClause}${limitClause} RETURNING *`
         : null;
