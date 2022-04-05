@@ -2,11 +2,10 @@
 
 Simple "everyday CRUD" Postgres queries with perfect TypeScript types.
 
-TODO:
+Designed to work with [pg-to-ts][].
 
-- [ ] Publish to npm
-- [ ] Write docs
 - [ ] Set up CI
+- [ ] Write docs
 - [ ] Split select unit/type tests
 - [ ] Check types in type tests
 - [ ] Write type tests for:
@@ -14,8 +13,6 @@ TODO:
   - [ ] Delete
   - [ ] Insert
 - [ ] Add unit tests to check that all queries are idempotent
-- [x] Settle on name (crudely-typed it is!)
-- [x] Test in cityci (requires publishing new pg-to-ts with `$type`)
 
 For issues:
 
@@ -27,3 +24,5 @@ For issues:
 From cityci testing:
 
 - [ ] Should insertMultiple with zero rows throw?
+
+[pg-to-ts]: https://github.com/danvk/pg-to-ts
