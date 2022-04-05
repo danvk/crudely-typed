@@ -4,7 +4,7 @@ Simple "everyday CRUD" Postgres queries with perfect TypeScript types.
 
 Designed to work with [pg-to-ts][].
 
-- [ ] Set up CI
+- [x] Set up CI
 - [ ] Write docs
 - [ ] Split select unit/type tests
 - [ ] Check types in type tests
