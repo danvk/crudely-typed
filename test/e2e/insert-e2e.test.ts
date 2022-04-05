@@ -69,4 +69,13 @@ describe('insert e2e', () => {
     const finalusers = await selectAllUsers(db);
     expect(finalusers).toHaveLength(4);
   });
+
+  it('should insert zero users', async () => {
+    const initUsers = await selectAllUsers(db);
+    expect(initUsers).toHaveLength(2);
+    const results = await insertMultipleUsers(db, []);
+    expect(results).toEqual([]);
+    const finalusers = await selectAllUsers(db);
+    expect(finalusers).toHaveLength(2);
+  });
 });
