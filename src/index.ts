@@ -462,16 +462,6 @@ class Update<
     private isSingular: LimitOne,
   ) {}
 
-  clone(): this {
-    return new Update(
-      this.table,
-      this.whereCols,
-      this.whereAnyCols,
-      this.setCols,
-      this.isSingular,
-    ) as any;
-  }
-
   build(): (
     db: Queryable,
     where: Resolve<
@@ -522,11 +512,8 @@ class Update<
 
     if (setCols) {
       // In this case the query can be determined in advance
-      const query = setCols
-        ? `UPDATE ${this.table} SET ${setClauses.join(
-            ', ',
-          )}${whereClause}${limitClause} RETURNING *`
-        : null;
+      const setSql = setClauses.join(', ');
+      const query = `UPDATE ${this.table} SET ${setSql}${whereClause}${limitClause} RETURNING *`;
 
       return async (db, whereObj: any, updateObj: any) => {
         const vals = setCols
@@ -568,11 +555,8 @@ class Update<
         const n = dynamicPlaceholder++;
         dynamicSetClauses.push(`${col} = $${n}`);
       }
-      const query = dynamicSetCols
-        ? `UPDATE ${this.table} SET ${dynamicSetClauses.join(
-            ', ',
-          )}${whereClause}${limitClause} RETURNING *`
-        : null;
+      const setSql = dynamicSetClauses.join(', ');
+      const query = `UPDATE ${this.table} SET ${setSql}${whereClause}${limitClause} RETURNING *`;
       const result = await db.query(query, vals);
       if (this.isSingular) {
         return result.rowCount === 0 ? null : result.rows[0];
@@ -589,15 +573,6 @@ class Delete<TableT, WhereCols = null, WhereAnyCols = never, LimitOne = false> {
     private whereAnyCols: WhereAnyCols,
     private isSingular: LimitOne,
   ) {}
-
-  clone(): this {
-    return new Delete(
-      this.table,
-      this.whereCols,
-      this.whereAnyCols,
-      this.isSingular,
-    ) as any;
-  }
 
   build(): (
     db: Queryable,

@@ -144,4 +144,12 @@ describe('insert multiple', () => {
       ]
     `);
   });
+
+  it('should do nothing with an empty array', async () => {
+    mockDb.q = '';
+    mockDb.args = [];
+    await insertUsers(mockDb, []);
+    expect(mockDb.q).toEqual('');
+    expect(mockDb.args).toEqual([]);
+  });
 });
