@@ -74,6 +74,13 @@ jobs:
         env:
           POSTGRES_URL: postgres://postgres:postgres@localhost:5432/postgres
 
+      - name: Run pg-to-ts and check for diffs
+        run: |
+          yarn pg-to-ts generate -c $POSTGRES_URL --config test/pg-to-ts.json --output test/dbschema.ts
+          git diff --exit-code
+        env:
+          POSTGRES_URL: postgres://postgres:postgres@localhost:5432/postgres
+
       - name: Tests
         run: yarn coverage
         env:
