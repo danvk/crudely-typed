@@ -69,8 +69,8 @@ jobs:
 
       - name: Init DB
         run: |
-          psql -a -f test/sql/pg-to-ts.sql
-          psql -a -f test/sql/testdata.sql
+          psql $POSTGRES_URL -a -f test/sql/pg-to-ts.sql
+          psql $POSTGRES_URL -a -f test/sql/testdata.sql
         env:
           POSTGRES_URL: postgres://postgres:postgres@localhost:5432/postgres
 
