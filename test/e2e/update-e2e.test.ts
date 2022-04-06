@@ -114,6 +114,37 @@ describe('update e2e', () => {
     `);
   });
 
+  it('should update with fixed columns and limitOne', async () => {
+    const update = docTable.update({
+      set: ['contents'],
+      where: ['title'],
+      limitOne: true,
+    });
+    expect(
+      await update(
+        db,
+        {title: 'Annual Plan for 2022'},
+        {contents: 'Twas the best of times, err, I mean…'},
+      ),
+    ).toMatchInlineSnapshot(`
+      Object {
+        "contents": "Twas the best of times, err, I mean…",
+        "created_by": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+        "id": "cde34b31-1f62-4f80-ad29-3ad48a03a36e",
+        "title": "Annual Plan for 2022",
+      }
+    `);
+    expect(await getDocByTitle(db, {title: 'Annual Plan for 2022'}))
+      .toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "contents": "Twas the best of times, err, I mean…",
+          "title": "Annual Plan for 2022",
+        },
+      ]
+    `);
+  });
+
   it('should update without a where clause (update all)', async () => {
     const getAllDocs = docTable.select();
     const update = docTable.update({set: ['contents']});

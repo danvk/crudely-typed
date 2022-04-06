@@ -66,6 +66,29 @@ describe('update', () => {
     `);
   });
 
+  it('should update with fixed columns and limitOne', async () => {
+    const update = docTable.update({
+      set: ['contents'],
+      where: ['title'],
+      limitOne: true,
+    });
+    await update(
+      mockDb,
+      {title: 'Great Expectations'},
+      {contents: 'Twas the best of times, err, I mean…'},
+    );
+
+    expect(mockDb.q).toMatchInlineSnapshot(
+      `"UPDATE doc SET contents = $1 WHERE title = $2 RETURNING *"`,
+    );
+    expect(mockDb.args).toMatchInlineSnapshot(`
+      Array [
+        "Twas the best of times, err, I mean…",
+        "Great Expectations",
+      ]
+    `);
+  });
+
   it('should update without a where clause (update all)', async () => {
     const update = docTable.update({set: ['created_by']});
     await update(mockDb, {}, {created_by: 'A Person'});
