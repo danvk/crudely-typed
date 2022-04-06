@@ -91,7 +91,7 @@ describe('update', () => {
     `);
   });
 
-  it.only('should be idempotent', async () => {
+  it('should be idempotent with dynamic updates', async () => {
     const update = docTable.update({where: ['title']});
     await update(
       mockDb,
