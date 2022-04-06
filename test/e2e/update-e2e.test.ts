@@ -85,6 +85,44 @@ describe('update e2e', () => {
     `);
   });
 
+  it('should update with a where any clause', async () => {
+    const update = docTable.update({
+      where: [any('title')],
+    });
+    expect(
+      await update(
+        db,
+        {title: ['Vision 2023', 'Annual Plan for 2022']},
+        {contents: 'Looking gloomy'},
+      ),
+    ).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "contents": "Looking gloomy",
+          "created_by": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+          "id": "cde34b31-1f62-4f80-ad29-3ad48a03a36e",
+          "title": "Annual Plan for 2022",
+        },
+        Object {
+          "contents": "Looking gloomy",
+          "created_by": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
+          "id": "01234b31-1f62-4f80-ad29-3ad48a03a36e",
+          "title": "Vision 2023",
+        },
+      ]
+    `);
+    expect(await docTable.select()(db)).toMatchObject([
+      {
+        title: 'Annual Plan for 2022',
+        contents: 'Looking gloomy',
+      },
+      {
+        title: 'Vision 2023',
+        contents: 'Looking gloomy',
+      },
+    ]);
+  });
+
   it('should update with fixed columns', async () => {
     const update = docTable.update({set: ['contents'], where: ['title']});
     expect(
