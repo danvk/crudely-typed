@@ -265,7 +265,7 @@ describe('types for select queries ', () => {
     it('should fail to join with a non-joinable column', async () => {
       commentsTable.select({
         // @ts-expect-error Type '"metadata"' is not assignable to type '"doc_id" | "author_id"'. ts(2322)
-        join: {something: 'metadata'}
+        join: {something: 'metadata'},
       });
     });
   });

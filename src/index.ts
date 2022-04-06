@@ -35,7 +35,10 @@ export class TableBuilder<SchemaT, Table extends keyof SchemaT, TableT> {
   select<
     Cols extends null | keyof TableT = null,
     WhereCols extends keyof TableT | SQLAny<keyof TableT & string> = never,
-    Joins extends Record<string, keyof LooseKey3<SchemaT, Table, 'foreignKeys'>> = never,
+    Joins extends Record<
+      string,
+      keyof LooseKey3<SchemaT, Table, 'foreignKeys'>
+    > = never,
     IsSingular extends boolean = false,
   >(opts?: {
     columns?: Cols[];
@@ -72,7 +75,10 @@ export class TableBuilder<SchemaT, Table extends keyof SchemaT, TableT> {
   // TODO: disallow this method if primaryKey=null
   selectByPrimaryKey<
     Cols extends null | keyof TableT = null,
-    Joins extends Record<string, keyof LooseKey3<SchemaT, Table, 'foreignKeys'>> = never,
+    Joins extends Record<
+      string,
+      keyof LooseKey3<SchemaT, Table, 'foreignKeys'>
+    > = never,
   >(opts?: {columns?: Cols[]; join?: Joins}) {
     return this.select<
       Cols,
