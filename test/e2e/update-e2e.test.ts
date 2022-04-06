@@ -149,4 +149,27 @@ describe('update e2e', () => {
       {title: 'Vision 2023', contents: 'To Be Written'},
     ]);
   });
+
+  it('should update with an any clause and a Set parameter', async () => {
+    const getAllDocs = docTable.select();
+    const update = docTable.update({
+      set: ['contents'],
+      where: [any('title')],
+    });
+    expect(
+      await update(
+        db,
+        {title: new Set(['Vision 2023', 'Annual Plan for 2022'])},
+        {contents: 'To Be Written'},
+      ),
+    ).toMatchObject([
+      {title: 'Annual Plan for 2022', contents: 'To Be Written'},
+      {title: 'Vision 2023', contents: 'To Be Written'},
+    ]);
+
+    expect(await getAllDocs(db)).toMatchObject([
+      {title: 'Annual Plan for 2022', contents: 'To Be Written'},
+      {title: 'Vision 2023', contents: 'To Be Written'},
+    ]);
+  });
 });

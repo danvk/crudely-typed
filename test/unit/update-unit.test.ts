@@ -66,7 +66,7 @@ describe('update', () => {
     `);
   });
 
-  it.only('should update without a where clause (update all)', async () => {
+  it('should update without a where clause (update all)', async () => {
     const update = docTable.update({set: ['created_by']});
     await update(mockDb, {}, {created_by: 'A Person'});
 
@@ -88,6 +88,31 @@ describe('update', () => {
     await update(
       mockDb,
       {title: ['Great Expectations', 'Bleak House']},
+      {created_by: 'Charles Dickens'},
+    );
+
+    expect(mockDb.q).toMatchInlineSnapshot(
+      `"UPDATE doc SET created_by = $1 WHERE title = ANY($2) RETURNING *"`,
+    );
+    expect(mockDb.args).toMatchInlineSnapshot(`
+      Array [
+        "Charles Dickens",
+        Array [
+          "Great Expectations",
+          "Bleak House",
+        ],
+      ]
+    `);
+  });
+
+  it('should update with an any clause and a Set parameter', async () => {
+    const update = docTable.update({
+      set: ['created_by'],
+      where: [any('title')],
+    });
+    await update(
+      mockDb,
+      {title: new Set(['Great Expectations', 'Bleak House'])},
       {created_by: 'Charles Dickens'},
     );
 
