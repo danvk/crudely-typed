@@ -47,6 +47,38 @@ describe('update', () => {
     `);
   });
 
+  it('should update with a where any clause', async () => {
+    const update = docTable.update({where: [any('title')]});
+    await update(
+      mockDb,
+      {title: ['Great Expectations']},
+      {created_by: 'Charles Dickens'},
+    );
+
+    expect(mockDb.q).toMatchInlineSnapshot(
+      `"UPDATE doc SET created_by = $2 WHERE title = ANY($1) RETURNING *"`,
+    );
+    expect(mockDb.args).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          "Great Expectations",
+        ],
+        "Charles Dickens",
+      ]
+    `);
+    const arrayQ = mockDb.q;
+    const arrayArgs = mockDb.args;
+
+    // Passing a Set should be the same as an Array.
+    await update(
+      mockDb,
+      {title: new Set(['Great Expectations'])},
+      {created_by: 'Charles Dickens'},
+    );
+    expect(mockDb.q).toEqual(arrayQ);
+    expect(mockDb.args).toEqual(arrayArgs);
+  });
+
   it('should update with fixed columns', async () => {
     const update = docTable.update({set: ['contents'], where: ['title']});
     await update(
