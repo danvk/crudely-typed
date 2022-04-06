@@ -90,4 +90,23 @@ describe('update', () => {
       ]
     `);
   });
+
+  it('should be idempotent with dynamic updates', async () => {
+    const update = docTable.update({where: ['title']});
+    await update(
+      mockDb,
+      {title: 'Great Expectations'},
+      {created_by: 'Charles Dickens'},
+    );
+    const initQ = mockDb.q;
+    const initArgs = mockDb.args;
+
+    await update(
+      mockDb,
+      {title: 'Great Expectations'},
+      {created_by: 'Charles Dickens'},
+    );
+    expect(mockDb.q).toEqual(initQ);
+    expect(mockDb.args).toEqual(initArgs);
+  });
 });

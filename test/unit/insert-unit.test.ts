@@ -60,6 +60,15 @@ describe('insert', () => {
       ]
     `);
   });
+
+  it('should be idempotent with dynamic inserts', async () => {
+    await insertUser(mockDb, {name: 'John Doe', pronoun: 'he/him'});
+    const initQ = mockDb.q;
+    const initArgs = mockDb.args;
+    await insertUser(mockDb, {name: 'John Doe', pronoun: 'he/him'});
+    expect(mockDb.q).toEqual(initQ);
+    expect(mockDb.args).toEqual(initArgs);
+  });
 });
 
 describe('insert multiple', () => {
@@ -151,5 +160,14 @@ describe('insert multiple', () => {
     await insertUsers(mockDb, []);
     expect(mockDb.q).toEqual('');
     expect(mockDb.args).toEqual([]);
+  });
+
+  it('should be idempotent with dynamic inserts', async () => {
+    await insertUsers(mockDb, [{name: 'John Doe'}, {name: 'Jane'}]);
+    const initQ = mockDb.q;
+    const initArgs = mockDb.args;
+    await insertUsers(mockDb, [{name: 'John Doe'}, {name: 'Jane'}]);
+    expect(mockDb.q).toEqual(initQ);
+    expect(mockDb.args).toEqual(initArgs);
   });
 });
