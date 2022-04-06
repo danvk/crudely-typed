@@ -114,6 +114,19 @@ describe('update e2e', () => {
     `);
   });
 
+  it('should update without a where clause (update all)', async () => {
+    const getAllDocs = docTable.select();
+    const update = docTable.update({set: ['contents']});
+    expect(await update(db, {}, {contents: 'This and that'})).toMatchObject([
+      {title: 'Annual Plan for 2022', contents: 'This and that'},
+      {title: 'Vision 2023', contents: 'This and that'},
+    ]);
+    expect(await getAllDocs(db)).toMatchObject([
+      {title: 'Annual Plan for 2022', contents: 'This and that'},
+      {title: 'Vision 2023', contents: 'This and that'},
+    ]);
+  });
+
   it('should update with an any clause', async () => {
     const getAllDocs = docTable.select();
     const update = docTable.update({
