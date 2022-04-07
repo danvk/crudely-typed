@@ -1,5 +1,3 @@
-/// Testing ////
-
 import {any, Queryable, TypedSQL} from '../../src';
 import {tables} from '../dbschema';
 
@@ -14,7 +12,8 @@ describe('types for select queries ', () => {
     //    ^? const selectAll: (db: Queryable) => Promise<Comment[]>
     const comments = await selectAll(db);
     comments;
-    // ^? Comment[]
+    // $ExpectType comment[]
+
     // @ts-expect-error Cannot pass argument without where()
     selectComment({});
   });

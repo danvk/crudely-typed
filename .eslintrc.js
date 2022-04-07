@@ -4,6 +4,7 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   plugins: [
     '@typescript-eslint',
+    'eslint-plugin-expect-type',
   ],
   extends: [
     'eslint:recommended',
@@ -20,5 +21,6 @@ module.exports = {
     ],
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
+    'expect-type/expect': 'error',
   }
 };
