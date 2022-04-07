@@ -211,6 +211,7 @@ describe('types for select queries ', () => {
         join: {author: 'author_id'},
         columns: ['id', 'metadata'],
       });
+      // $ExpectTypeSnapshot SelectWithJoin
       selectSome;
       // ^? const selectSome: (db: Queryable) => Promise<{
       //        id: string;

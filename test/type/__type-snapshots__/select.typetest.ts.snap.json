@@ -1,0 +1,3 @@
+{
+  "SelectWithJoin": "(db: Queryable) => Promise<{ id: string; metadata: unknown; author: Users; }[]>"
+}
