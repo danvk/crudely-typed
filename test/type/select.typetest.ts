@@ -21,7 +21,7 @@ describe('types for select queries ', () => {
     const selectCommentCols = commentsTable.select({
       columns: ['id', 'author_id', 'content_md'],
     });
-    selectCommentCols;
+    selectCommentCols; // $ExpectType (db: Queryable) => Promise<{ id: string; author_id: string; content_md: string; }[]>
     // ^? const selectCommentCols: (db: Queryable) => Promise<{
     //     id: string;
     //     author_id: string;
