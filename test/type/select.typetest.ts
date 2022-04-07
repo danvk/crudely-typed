@@ -11,8 +11,7 @@ describe('types for select queries ', () => {
   it('should select all', async () => {
     //    ^? const selectAll: (db: Queryable) => Promise<Comment[]>
     const comments = await selectAll(db);
-    comments;
-    // $ExpectType comment[]
+    comments; // $ExpectType Comment[]
 
     // @ts-expect-error Cannot pass argument without where()
     selectComment({});
