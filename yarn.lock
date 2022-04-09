@@ -1322,10 +1322,8 @@ escodegen@^2.0.0:
   optionalDependencies:
     source-map "~0.6.1"
 
-eslint-plugin-expect-type@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-expect-type/-/eslint-plugin-expect-type-0.1.0.tgz#832f61458107b18c968cd1136332933d2bed82aa"
-  integrity sha512-CGxABx7IHdi32g+kIYUG/dz+968T8UR8vKX4QVSczFKvLaz11a6u7BVF2lgw/0a36n2RaXtaMh4oaD+P7yy1dg==
+eslint-plugin-expect-type@../eslint-plugin-expect-type:
+  version "0.0.7"
   dependencies:
     "@typescript-eslint/utils" "^5.0.0"
     fs-extra "^10.0.1"

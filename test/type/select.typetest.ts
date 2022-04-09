@@ -9,32 +9,32 @@ const selectAll = commentsTable.select();
 
 describe('types for select queries ', () => {
   it('should select all', async () => {
-    //    ^? const selectAll: (db: Queryable) => Promise<Comment[]>
     const comments = await selectAll(db);
+    //    ^? const comments: Comment[]
     comments; // $ExpectType Comment[]
 
     // @ts-expect-error Cannot pass argument without where()
     selectComment({});
   });
 
-  it('should select all with specific columns', () => {
+  it('should select all with specific columns', async () => {
     const selectCommentCols = commentsTable.select({
       columns: ['id', 'author_id', 'content_md'],
     });
-    selectCommentCols; // $ExpectType (db: Queryable) => Promise<{ id: string; author_id: string; content_md: string; }[]>
+    selectCommentCols;
     // ^? const selectCommentCols: (db: Queryable) => Promise<{
-    //     id: string;
-    //     author_id: string;
-    //     content_md: string;
-    // }[]>
+    //        id: string;
+    //        author_id: string;
+    //        content_md: string;
+    //    }[]>
 
     const comments = selectCommentCols(db);
     comments;
-    // ^? {
-    //      id: string;
-    //      author_id: string;
-    //      content_md: string;
-    //    }[]
+    // ^? const comments: Promise<{
+    //        id: string;
+    //        author_id: string;
+    //        content_md: string;
+    //    }[]>
 
     // @ts-expect-error this column was not selected
     comments[0].doc_id;
@@ -107,7 +107,7 @@ describe('types for select queries ', () => {
 
     let manyComments = selectAnyOf(db, {id: new Set(['123', 'abc'])});
     manyComments;
-    // ^? const manyComments: Promise<Comment[]>
+    // ^? let manyComments: Promise<Comment[]>
 
     // arrays are also OK
     manyComments = selectAnyOf(db, {id: ['123', 'abc']});
@@ -165,7 +165,7 @@ describe('types for select queries ', () => {
     //    }) => Promise<{
     //        id: string;
     //        author_id: string;
-    //        metadata: CommentMetadata | null;
+    //        metadata: unknown;
     //    }[]>
 
     const comments = await complexSelect(db, {
@@ -176,7 +176,7 @@ describe('types for select queries ', () => {
     // ^? const comments: {
     //        id: string;
     //        author_id: string;
-    //        metadata: CommentMetadata | null;
+    //        metadata: unknown;
     //    }[]
 
     // @ts-expect-error cannot use any() with invalid column
@@ -211,11 +211,10 @@ describe('types for select queries ', () => {
         join: {author: 'author_id'},
         columns: ['id', 'metadata'],
       });
-      // $ExpectTypeSnapshot SelectWithJoin
       selectSome;
       // ^? const selectSome: (db: Queryable) => Promise<{
       //        id: string;
-      //        metadata: CommentMetadata | null;
+      //        metadata: unknown;
       //        author: Users;
       //    }[]>
     });
@@ -253,10 +252,10 @@ describe('types for select queries ', () => {
       });
       selectSome;
       // ^? const selectSome: (db: Queryable, where: {
-      //      id: string;
+      //        id: string;
       //    }) => Promise<{
       //        id: string;
-      //        metadata: CommentMetadata | null;
+      //        metadata: unknown;
       //        author: Users;
       //    } | null>
     });
