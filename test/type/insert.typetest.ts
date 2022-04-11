@@ -1,0 +1,59 @@
+import {TypedSQL} from '../../src';
+import {tables} from '../dbschema';
+import {mockDb} from '../test-utils';
+
+const typedDb = new TypedSQL(tables);
+
+const userTable = typedDb.table('users');
+// const commentsTable = typedDb.table('comment');
+// const docTable = typedDb.table('doc');
+
+describe('insert', () => {
+  it('should generate an insert function', async () => {
+    // TODO: eliminate the Omit<T, never> here
+    const insertUser = userTable.insert();
+    //    ^? const insertUser: (db: Queryable, row: Omit<UsersInput, never>) => Promise<Users>
+    const user = await insertUser(mockDb, {
+      name: 'John Doe',
+      pronoun: 'he/him',
+    });
+    user;
+    // ^? const user: Users
+  });
+
+  it('should generate an insert without a disallowed column', async () => {
+    const insertNoId = userTable.insert({disallowColumns: ['id']});
+    //    ^? const insertNoId: (db: Queryable, row: Omit<UsersInput, "id">) => Promise<Users>
+    const user = await insertNoId(mockDb, {
+      name: 'John Doe',
+      pronoun: 'he/him',
+    });
+    user;
+    // ^? const user: Users
+  });
+});
+
+describe('insert multiple', () => {
+  it('should generate a multi-insert function', async () => {
+    // TODO: remove the Omit<T, never> here
+    const insertUsers = userTable.insertMultiple();
+    //    ^? const insertUsers: (db: Queryable, rows: Omit<UsersInput, never>[]) => Promise<Users[]>
+    const users = await insertUsers(mockDb, [
+      {name: 'John Doe', pronoun: 'he/him/his'},
+      {name: 'Jane Doe', pronoun: 'she/her/hers'},
+    ]);
+    users;
+    // ^? const users: Users[]
+  });
+
+  it('should generate a multi-insert without a disallowed column', async () => {
+    const insertNoId = userTable.insertMultiple({disallowColumns: ['id']});
+    //    ^? const insertNoId: (db: Queryable, rows: Omit<UsersInput, "id">[]) => Promise<Users[]>
+    const users = await insertNoId(mockDb, [
+      {name: 'John Doe', pronoun: 'he/him/his'},
+      {name: 'Jane Doe', pronoun: 'she/her/hers'},
+    ]);
+    users;
+    // ^? const users: Users[]
+  });
+});
