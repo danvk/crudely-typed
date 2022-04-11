@@ -8,7 +8,7 @@ const userTable = typedDb.table('users');
 // const commentsTable = typedDb.table('comment');
 // const docTable = typedDb.table('doc');
 
-describe('insert', () => {
+describe('types for insert queries', () => {
   it('should generate an insert function', async () => {
     // TODO: eliminate the Omit<T, never> here
     const insertUser = userTable.insert();
