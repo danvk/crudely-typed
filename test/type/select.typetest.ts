@@ -10,8 +10,8 @@ const selectAll = commentsTable.select();
 describe('types for select queries ', () => {
   it('should select all', async () => {
     const comments = await selectAll(db);
-    //    ^? const comments: Comment[]
-    comments; // $ExpectType Comment[]
+    comments;
+    // ^? const comments: Comment[]
 
     // @ts-expect-error Cannot pass argument without where()
     selectComment({});

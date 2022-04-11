@@ -30,6 +30,13 @@ describe('insert', () => {
     });
     user;
     // ^? const user: Users
+
+    // @ts-expect-error id is not allowed
+    insertNoId(mockDb, {name: 'blah', id: 'not allowed!'});
+
+    // TODO: this should be an error; use optional never to make it happen.
+    const indirectUser = {name: 'blah', id: 'not allowed'};
+    insertNoId(mockDb, indirectUser);
   });
 });
 
@@ -55,5 +62,11 @@ describe('insert multiple', () => {
     ]);
     users;
     // ^? const users: Users[]
+
+    // @ts-expect-error id is not allowed
+    insertNoId(mockDb, [{name: 'blah', id: 'not allowed!'}]);
+
+    // @ts-expect-error id is not allowed in any of the inputs
+    insertNoId(mockDb, [{name: 'blah'}, {name: 'blah', id: 'not allowed!'}]);
   });
 });
