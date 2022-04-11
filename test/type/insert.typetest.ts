@@ -10,9 +10,8 @@ const userTable = typedDb.table('users');
 
 describe('types for insert queries', () => {
   it('should generate an insert function', async () => {
-    // TODO: eliminate the Omit<T, never> here
     const insertUser = userTable.insert();
-    //    ^? const insertUser: (db: Queryable, row: Omit<UsersInput, never>) => Promise<Users>
+    //    ^? const insertUser: (db: Queryable, row: UsersInput) => Promise<Users>
     const user = await insertUser(mockDb, {
       name: 'John Doe',
       pronoun: 'he/him',
@@ -42,9 +41,8 @@ describe('types for insert queries', () => {
 
 describe('insert multiple', () => {
   it('should generate a multi-insert function', async () => {
-    // TODO: remove the Omit<T, never> here
     const insertUsers = userTable.insertMultiple();
-    //    ^? const insertUsers: (db: Queryable, rows: Omit<UsersInput, never>[]) => Promise<Users[]>
+    //    ^? const insertUsers: (db: Queryable, rows: readonly UsersInput[]) => Promise<Users[]>
     const users = await insertUsers(mockDb, [
       {name: 'John Doe', pronoun: 'he/him/his'},
       {name: 'Jane Doe', pronoun: 'she/her/hers'},
@@ -55,7 +53,7 @@ describe('insert multiple', () => {
 
   it('should generate a multi-insert without a disallowed column', async () => {
     const insertNoId = userTable.insertMultiple({disallowColumns: ['id']});
-    //    ^? const insertNoId: (db: Queryable, rows: Omit<UsersInput, "id">[]) => Promise<Users[]>
+    //    ^? const insertNoId: (db: Queryable, rows: readonly Omit<UsersInput, "id">[]) => Promise<Users[]>
     const users = await insertNoId(mockDb, [
       {name: 'John Doe', pronoun: 'he/him/his'},
       {name: 'Jane Doe', pronoun: 'she/her/hers'},

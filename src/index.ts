@@ -362,7 +362,10 @@ class Insert<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
 
   build(): (
     db: Queryable,
-    row: Omit<InsertT, DisallowedColumns & keyof InsertT>,
+    // XXX this is a great example of where distribution must be prevented
+    row: [DisallowedColumns] extends [never]
+      ? InsertT
+      : Omit<InsertT, DisallowedColumns & keyof InsertT>,
   ) => Promise<TableT> {
     // TODO: define an interface for this
     const allColumns = (this.tableSchema as any).columns as string[];
@@ -408,7 +411,9 @@ class InsertMultiple<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
 
   build(): (
     db: Queryable,
-    rows: Omit<InsertT, DisallowedColumns & keyof InsertT>[],
+    rows: [DisallowedColumns] extends [never]
+      ? readonly InsertT[]
+      : readonly Omit<InsertT, DisallowedColumns & keyof InsertT>[],
   ) => Promise<TableT[]> {
     const allColumns = (this.tableSchema as any).columns as string[];
     const disallowedColumns = this.disallowedColumns as unknown as
@@ -418,7 +423,7 @@ class InsertMultiple<TableSchemaT, TableT, InsertT, DisallowedColumns = never> {
       ? allColumns.filter(col => !disallowedColumns.includes(col))
       : allColumns;
 
-    return async (db: Queryable, rows: any[]) => {
+    return async (db: Queryable, rows: readonly any[]) => {
       if (disallowedColumns) {
         const illegalCols = disallowedColumns.filter(col =>
           rows.some(row => row[col] !== undefined),
