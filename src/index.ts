@@ -122,6 +122,7 @@ export class TableBuilder<SchemaT, Table extends keyof SchemaT, TableT> {
     ).build();
   }
 
+  // TODO: this should include a disallowColumns for dynamic set
   update<
     SetCols extends null | keyof TableT = null,
     WhereCols extends keyof TableT | SQLAny<keyof TableT & string> = never,

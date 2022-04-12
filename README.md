@@ -46,7 +46,7 @@ import {tables} from './dbschema';  // <-- output of pg-to-ts
 const typedSql = new TypedSQL(tables);
 ```
 
-### Table
+### table
 
 From a `TypedSQL` instance, you can produce a `TableBuilder` object for any of
 your tables:
@@ -59,7 +59,7 @@ The remaining functions in crudely-typed are all defined on this table object.
 Each of the functions comes in regular and `ByPrimaryKey` variants, e.g.
 `table.select()` and `table.selectByPrimaryKey()`.
 
-### Select
+### table.select
 
 ```ts
 table.select(): (db: Queryable) => Promise<Row[]>
@@ -146,7 +146,7 @@ You don't need to specify the joined table or its type; crudely-typed has all
 the information it needs from the dbschema. If you specify a set of columns to
 select with `columns`, the foreign key need not be one of those columns.
 
-### Select by primary key
+### table.selectByPrimaryKey
 
 There's a helper for the common case of selecting by primary key:
 
@@ -173,7 +173,7 @@ const doc = await getDocById(db, {id: 'doc-id'});
 //    ^? const doc: {title: string; author: Author} | null
 ```
 
-### Insert
+### table.insert
 
 ```ts
 table.insert(): (db: Queryable, row: RowInput) => Promise<Row>
@@ -203,11 +203,102 @@ const doc = await insertDoc({author: 'Mark Twain', title: 'Huckleberry Finn'});
 //    ^? const doc: Doc
 ```
 
-### Update
+### table.insertMultiple
 
+This is indentical to `insert` but allows multiple rows to be inserted with a
+single query.
 
+```ts
+const docsTable = typedSql.table('docs');
+const insertDocs = docsTable.insertMultiple();
+//    ^? const insertDocs: (
+//         db: Queryable,
+//         rows: readonly DocInput[]
+//       ) => Promise<Row[]>
+const docs = await insertDocs([
+    {title: 'Huckleberry Finn', author: 'Mark Twain'},
+    {title: 'Poor Richard', author: 'Ben Franklin'}
+]);
+```
 
-### Delete
+`insertMultiple` also supports `disallowColumns`, just like `insert`.
+
+### table.update
+
+```ts
+table.update({
+    where?: (Column | SQLAny<Column>)[],
+    set?: Column[],
+    limitOne?: boolean,
+}): (db: Queryable, where: ..., set: ...) => Promise<...>
+```
+
+With a `where` and a `set` clause, this updates specific columns on specific rows. All affected rows are returned:
+
+```ts
+const docsTable = typedSql.table('docs');
+const setYear = docsTable.update({where: ['title'], set: ['year']});
+//    ^? const setYear: (
+//         db: Queryable,
+//         where: {title: string},
+//         set: {year: number}
+//       ) => Promise<Doc[]>
+const newDocs = setYear(db, {title: 'Huck Finn'}, {year: 1872});
+//    ^? const newDocs: Promise<Doc[]>
+```
+
+Without a `set` clause, this performs a dynamic update based on the param:
+
+```ts
+const update = docsTable.update({where: ['title']});
+//    ^? const update: (
+//         db: Queryable,
+//         where: {title: string},
+//         set: Partial<Doc>
+//       ) => Promise<Doc[]>
+const newDocs = setYear(db, {title: 'Huck Finn'}, {year: 1872});
+//    ^? const newDocs: Promise<Doc[]>
+```
+
+The `where` clause can include multiple columns, in which case it operates as
+an `AND`, and can support `ANY` clauses.
+See [Where clasues](#where-clauses), below.
+
+Without a `where` clause, this updates all rows in the table.
+
+If you pass `limitOne: true`, at most one row will be updated and the function
+will return `T | null` instead of `T[]`:
+
+```ts
+const update = docsTable.update({where: ['title'], limitOne: true});
+//    ^? const update: (
+//         db: Queryable,
+//         where: {title: string},
+//         set: Partial<Doc>
+//       ) => Promise<Doc | null>
+const newDoc = setYear(db, {title: 'Huck Finn'}, {year: 1872});
+//    ^? const newDocs: Promise<Doc>
+```
+
+### table.updateByPrimaryKey
+
+This is a shortcut for updating a row by its table's primary key:
+
+```ts
+const update = docsTable.updateByPrimaryKey(set: ['year']);
+//    ^? const update: (
+//         db: Queryable,
+//         where: {id: string},
+//         set: {year: number}
+//       ) => Promise<Doc | null>
+const newDoc = setYear(db, {id: 'isbn-123'}, {year: 1872});
+//    ^? const newDoc: Promise<Doc>
+```
+
+If you pass a `set` option, then this updates a fixed set of columns.
+If you don't, it's dynamic based on its parameter, just like `update`.
+
+### table.delete
 
 ```ts
 table.delete(options: {
@@ -236,7 +327,9 @@ const deleteByTitle = docsTable.delete({ where: ['title'], limitOne: true });
 //    ^? const deleteByTitle: (db: Queryable, where: {title: string}) => Promise<Doc | null>
 ```
 
-### deleteByPrimaryKey
+If you don't specify a `where` clause or `limitOne`, this acts as "delete all".
+
+### table.deleteByPrimaryKey
 
 This is a helper for the common case where you want to delete rows by their
 primary key:
@@ -251,9 +344,28 @@ This is exactly equivalent to `docsTable.delete({ where: ['id'], limitOne: true 
 
 ## Queryable
 
+All generated functions take a `Queryable` object as their first parameter:
+
+```ts
+interface Queryable {
+  query(sql: string, ...args: any[]): Promise<Result>;
+}
+```
+
+The `Client` and `Pool` classes from `pg` conform to this and can be used with
+crudely-typed.
+
 ## Where clauses
 
+TODO:
+
+- Multiple columns are `AND`ed
+- You can generate `ANY` matchers
+- You can generate a mix
+
 ## Joins
+
+TODO
 
 ## FAQ
 
