@@ -10,6 +10,7 @@ const userTable = typedDb.table('users');
 
 describe('delete unit', () => {
   it('should delete all entries', async () => {
+    // TODO: should probably require "where: []" here to be even more explicit
     const deleteAll = userTable.delete({});
     await deleteAll(mockDb, {});
     expect(mockDb.q).toMatchInlineSnapshot(`"DELETE FROM users RETURNING *"`);
