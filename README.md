@@ -23,7 +23,7 @@ import {tables} from './dbschema';
 const typedSql = new TypedSQL(tables);
 
 const getDocById = typedSql.table('docs').selectByPrimaryKey();
-//    ^? const getDocById: (db: Queryable, where: { id: string }) => Promise<Doc>
+//    ^? const getDocById: (db: Queryable, where: { id: string }) => Promise<Doc | null>
 ```
 
 Crudely Typed supports the basic create / read / update / delete queries. See
