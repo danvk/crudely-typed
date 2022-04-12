@@ -8,7 +8,7 @@ module.exports = {
 
       plugins: [
         '@typescript-eslint',
-        'eslint-plugin-expect-type',
+        './src/eslint-plugin-expect-type',
       ],
       parserOptions: {
         project: './tsconfig.json'
