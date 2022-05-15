@@ -25,12 +25,13 @@
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
     "eslint": "^8.12.0",
-    "eslint-plugin-expect-type": "link:./eslint-plugin-expect-type",
+    "eslint-plugin-expect-type": "^0.2.0",
     "jest": "^27.5.1",
     "pg": "^8.7.3",
     "pg-to-ts": "^4.1.0",
     "prettier": "^2.6.2",
     "ts-jest": "^27.1.4",
     "typescript": "^4.6.3"
-  }
+  },
+  "dependencies": {}
 }
