@@ -1,6 +1,6 @@
 {
   "name": "crudely-typed",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Simple \"everyday CRUD\" Postgres queries with perfect TypeScript types",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -13,7 +13,8 @@
     "format": "prettier --write .",
     "test": "jest",
     "clean": "rm -rf dist",
-    "coverage": "jest --coverage"
+    "coverage": "jest --coverage",
+    "prepublishOnly": "build"
   },
   "files": [
     "dist/src"
