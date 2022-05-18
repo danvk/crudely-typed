@@ -541,11 +541,13 @@ class Update<
 
     const whereKeys: string[] = [];
     const whereClauses: string[] = [];
+    const whereNames: string[] = [];
     if (this.whereCols) {
       for (const col of this.whereCols as unknown as string[]) {
         whereKeys.push(col);
         const n = placeholder++;
         whereClauses.push(`${col} = $${n}`);
+        whereNames.push(col);
       }
     }
     if (this.whereAnyCols) {
@@ -554,6 +556,7 @@ class Update<
         whereKeys.push(col);
         const n = placeholder++;
         whereClauses.push(`${col} = ANY($${n})`);
+        whereNames.push(col);
       }
     }
     const whereClause = whereClauses.length
@@ -568,16 +571,14 @@ class Update<
       const query = `UPDATE ${this.table} SET ${setSql}${whereClause}${limitClause} RETURNING *`;
 
       return async (db, whereObj: any, updateObj: any) => {
-        const vals = setCols
-          .map(col => updateObj[col])
-          .concat(
-            whereKeys.map(col =>
-              whereObj[col] instanceof Set
-                ? Array.from(whereObj[col])
-                : whereObj[col],
-            ),
-          );
-        const result = await db.query(query, vals);
+        const whereVals = whereKeys.map(col =>
+          whereObj[col] instanceof Set
+            ? Array.from(whereObj[col])
+            : whereObj[col],
+        );
+        const vals = setCols.map(col => updateObj[col]).concat(whereVals);
+        const thisQuery = updateQueryWithIsNull(query, whereVals, whereNames);
+        const result = await db.query(thisQuery, vals);
         if (this.isSingular) {
           return result.rowCount === 0 ? null : result.rows[0];
         }
@@ -591,13 +592,12 @@ class Update<
     return async (db, whereObj: any, updateObj: any) => {
       // TODO: maybe better to get this from the schema?
       const dynamicSetCols = Object.keys(updateObj);
-      const vals = whereKeys
-        .map(col =>
-          whereObj[col] instanceof Set
-            ? Array.from(whereObj[col])
-            : whereObj[col],
-        )
-        .concat(dynamicSetCols.map(col => updateObj[col]));
+      const whereVals = whereKeys.map(col =>
+        whereObj[col] instanceof Set
+          ? Array.from(whereObj[col])
+          : whereObj[col],
+      );
+      const vals = whereVals.concat(dynamicSetCols.map(col => updateObj[col]));
 
       let dynamicPlaceholder = placeholder;
       const dynamicSetKeys: string[] = [];
@@ -608,7 +608,8 @@ class Update<
         dynamicSetClauses.push(`${col} = $${n}`);
       }
       const setSql = dynamicSetClauses.join(', ');
-      const query = `UPDATE ${this.table} SET ${setSql}${whereClause}${limitClause} RETURNING *`;
+      let query = `UPDATE ${this.table} SET ${setSql}${whereClause}${limitClause} RETURNING *`;
+      query = updateQueryWithIsNull(query, whereVals, whereNames);
       const result = await db.query(query, vals);
       if (this.isSingular) {
         return result.rowCount === 0 ? null : result.rows[0];
