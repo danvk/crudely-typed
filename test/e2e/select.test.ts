@@ -263,6 +263,24 @@ describe('select e2e ', () => {
     `);
   });
 
+  it('should select by a mix of null and non-null values', async () => {
+    const selectDocByContent = docTable.select({where: ['contents', 'title']});
+    const nullDocs = await selectDocByContent(db, {
+      contents: null,
+      title: 'Blank Slate',
+    });
+    expect(nullDocs).toHaveLength(1);
+    expect(db.q).toMatchInlineSnapshot(
+      `"SELECT * FROM doc WHERE (contents IS NULL OR contents = $1) AND title = $2"`,
+    );
+    expect(db.args).toMatchInlineSnapshot(`
+      Array [
+        null,
+        "Blank Slate",
+      ]
+    `);
+  });
+
   it('should allow multiple plural where clauses', async () => {
     const select = commentsTable.select({
       where: [any('author_id'), any('doc_id')],
