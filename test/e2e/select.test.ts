@@ -510,5 +510,40 @@ describe('select e2e ', () => {
         }
       `);
     });
+
+    it('should join with a null where clause', async () => {
+      const select = docTable.select({
+        where: ['contents', 'title'],
+        join: {author: 'created_by'},
+      });
+      const nullDocsWithAuthor = await select(db, {
+        contents: null,
+        title: 'Blank Slate',
+      });
+      expect(nullDocsWithAuthor).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "author": Object {
+              "id": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+              "name": "John Deere",
+              "pronoun": "he/him",
+            },
+            "contents": null,
+            "created_by": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+            "id": "98765432-1f62-4f80-ad29-3ad48a03a36e",
+            "title": "Blank Slate",
+          },
+        ]
+      `);
+      expect(db.q).toMatchInlineSnapshot(
+        `"SELECT t1.*, to_jsonb(t2.*) as author FROM doc as t1 JOIN users AS t2 ON t1.created_by = t2.id WHERE (t1.contents IS NULL OR t1.contents = $1) AND t1.title = $2"`,
+      );
+      expect(db.args).toMatchInlineSnapshot(`
+        Array [
+          null,
+          "Blank Slate",
+        ]
+      `);
+    });
   });
 });

@@ -358,6 +358,7 @@ class Select<
           }
         }
       });
+
       const result = await db.query(thisQuery, where);
       if (this.isSingular) {
         if (result.rowCount === 0) {
