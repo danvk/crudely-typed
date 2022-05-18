@@ -342,10 +342,14 @@ class Select<
       // clause, even though it can never match, to avoid having to renumber.
       let thisQuery = query;
       where.forEach((value, i) => {
-        if (value === null) {
+        if (value === null || (Array.isArray(value) && value.includes(null))) {
           const name = whereNames[i];
-          const pat = `${name} = $`;
-          const idx = thisQuery.indexOf(pat);
+          let pat = `${name} = $`;
+          let idx = thisQuery.indexOf(pat);
+          if (idx === -1) {
+            pat = `${name} = ANY($`;
+            idx = thisQuery.indexOf(pat);
+          }
           if (idx >= 0) {
             const pre = thisQuery.slice(0, idx);
             const post = thisQuery.slice(idx + pat.length);
@@ -354,7 +358,7 @@ class Select<
               throw new Error('Unable to match null in ' + query);
             }
             const [, dig, rest] = m;
-            thisQuery = `${pre}(${name} IS NULL OR ${name} = $${dig})${rest}`;
+            thisQuery = `${pre}(${name} IS NULL OR ${pat}${dig})${rest}`;
           }
         }
       });

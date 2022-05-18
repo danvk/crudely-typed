@@ -193,12 +193,22 @@ describe('select e2e ', () => {
     expect(usersArray).toEqual(users1);
   });
 
-  it.only('should select by a set of values that includes null', async () => {
+  it('should select by a set of values that includes null', async () => {
     const selectAnyDoc = docTable.select({where: [any('contents')]});
     const nullDocs = await selectAnyDoc(db, {contents: [null]});
-    expect(nullDocs).toMatchInlineSnapshot(`Array []`);
+    expect(nullDocs).toHaveLength(1);
+    expect(nullDocs).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "contents": null,
+          "created_by": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+          "id": "98765432-1f62-4f80-ad29-3ad48a03a36e",
+          "title": "Blank Slate",
+        },
+      ]
+    `);
     expect(db.q).toMatchInlineSnapshot(
-      `"SELECT * FROM doc WHERE contents = ANY($1)"`,
+      `"SELECT * FROM doc WHERE (contents IS NULL OR contents = ANY($1))"`,
     );
     expect(db.args).toMatchInlineSnapshot(`
       Array [
