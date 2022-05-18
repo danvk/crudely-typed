@@ -232,6 +232,39 @@ type Join<TableSchemaT, Joins> = {
 
 type Result<T, IsSingular> = IsSingular extends true ? T | null : T[];
 
+// In the case that the user is trying to match against a NULL value, we
+// need to replace "col = $1" with "col IS NULL". We keep the "col = $1"
+// clause, even though it can never match, to avoid having to renumber.
+function updateQueryWithIsNull(
+  query: string,
+  whereValues: any[],
+  whereNames: string[],
+): string {
+  let thisQuery = query;
+  whereValues.forEach((value, i) => {
+    if (value === null || (Array.isArray(value) && value.includes(null))) {
+      const name = whereNames[i];
+      let pat = `${name} = $`;
+      let idx = thisQuery.indexOf(pat);
+      if (idx === -1) {
+        pat = `${name} = ANY($`;
+        idx = thisQuery.indexOf(pat);
+      }
+      if (idx >= 0) {
+        const pre = thisQuery.slice(0, idx);
+        const post = thisQuery.slice(idx + pat.length);
+        const m = /^(\d+)(.*)/.exec(post);
+        if (!m) {
+          throw new Error('Unable to match null in ' + query);
+        }
+        const [, dig, rest] = m;
+        thisQuery = `${pre}(${name} IS NULL OR ${pat}${dig})${rest}`;
+      }
+    }
+  });
+  return thisQuery;
+}
+
 class Select<
   TableSchemaT,
   TableT,
@@ -336,32 +369,7 @@ class Select<
           ? Array.from(whereObj[col])
           : whereObj[col],
       );
-
-      // In the case that the user is trying to match against a NULL value, we
-      // need to replace "col = $1" with "col IS NULL". We keep the "col = $1"
-      // clause, even though it can never match, to avoid having to renumber.
-      let thisQuery = query;
-      where.forEach((value, i) => {
-        if (value === null || (Array.isArray(value) && value.includes(null))) {
-          const name = whereNames[i];
-          let pat = `${name} = $`;
-          let idx = thisQuery.indexOf(pat);
-          if (idx === -1) {
-            pat = `${name} = ANY($`;
-            idx = thisQuery.indexOf(pat);
-          }
-          if (idx >= 0) {
-            const pre = thisQuery.slice(0, idx);
-            const post = thisQuery.slice(idx + pat.length);
-            const m = /^(\d+)(.*)/.exec(post);
-            if (!m) {
-              throw new Error('Unable to match null in ' + query);
-            }
-            const [, dig, rest] = m;
-            thisQuery = `${pre}(${name} IS NULL OR ${pat}${dig})${rest}`;
-          }
-        }
-      });
+      const thisQuery = updateQueryWithIsNull(query, where, whereNames);
 
       const result = await db.query(thisQuery, where);
       if (this.isSingular) {
