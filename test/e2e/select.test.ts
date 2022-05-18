@@ -140,10 +140,18 @@ describe('select e2e ', () => {
     ).toMatchInlineSnapshot(`Array []`);
   });
 
-  it.only('should select by a column with a null value', async () => {
+  it('should select by a column with a null value', async () => {
     const selectDocByContent = docTable.select({where: ['contents']});
     const nullDocs = await selectDocByContent(db, {contents: null});
     expect(nullDocs).toHaveLength(1);
+    expect(db.q).toMatchInlineSnapshot(
+      `"SELECT * FROM doc WHERE (contents IS NULL OR contents = $1)"`,
+    );
+    expect(db.args).toMatchInlineSnapshot(`
+      Array [
+        null,
+      ]
+    `);
   });
 
   it('should allow selecting by a set of possible values', async () => {

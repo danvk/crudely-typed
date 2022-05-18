@@ -298,6 +298,7 @@ class Select<
       });
       query += joins.join('');
     }
+    const whereNames: string[] = [];
     const whereKeys: string[] = [];
     const whereClauses: string[] = [];
     const tab = this.joins ? 't1.' : '';
@@ -307,7 +308,9 @@ class Select<
         const n = whereKeys.length;
         // XXX pg-promise requires a cast here for UUID columns (${tab}${col}::text)
         //     while node-postgres does not require it.
-        whereClauses.push(`${tab}${col} = $${n}`);
+        const name = `${tab}${col}`;
+        whereClauses.push(`${name} = $${n}`);
+        whereNames.push(name);
       }
     }
     if (this.whereAnyCols) {
@@ -315,7 +318,9 @@ class Select<
         const col = anyCol.__any;
         whereKeys.push(col);
         const n = whereKeys.length;
+        const name = `${tab}${col}`;
         whereClauses.push(`${tab}${col} = ANY($${n})`);
+        whereNames.push(name);
       }
     }
     if (whereClauses.length) {
@@ -331,7 +336,29 @@ class Select<
           ? Array.from(whereObj[col])
           : whereObj[col],
       );
-      const result = await db.query(query, where);
+
+      // In the case that the user is trying to match against a NULL value, we
+      // need to replace "col = $1" with "col IS NULL". We keep the "col = $1"
+      // clause, even though it can never match, to avoid having to renumber.
+      let thisQuery = query;
+      where.forEach((value, i) => {
+        if (value === null) {
+          const name = whereNames[i];
+          const pat = `${name} = $`;
+          const idx = thisQuery.indexOf(pat);
+          if (idx >= 0) {
+            const pre = thisQuery.slice(0, idx);
+            const post = thisQuery.slice(idx + pat.length);
+            const m = /^(\d+)(.*)/.exec(post);
+            if (!m) {
+              throw new Error('Unable to match null in ' + query);
+            }
+            const [, dig, rest] = m;
+            thisQuery = `${pre}(${name} IS NULL OR ${name} = $${dig})${rest}`;
+          }
+        }
+      });
+      const result = await db.query(thisQuery, where);
       if (this.isSingular) {
         if (result.rowCount === 0) {
           return null;
