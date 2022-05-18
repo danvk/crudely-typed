@@ -193,6 +193,22 @@ describe('select e2e ', () => {
     expect(usersArray).toEqual(users1);
   });
 
+  it.only('should select by a set of values that includes null', async () => {
+    const selectAnyDoc = docTable.select({where: [any('contents')]});
+    const nullDocs = await selectAnyDoc(db, {contents: [null]});
+    expect(nullDocs).toMatchInlineSnapshot(`Array []`);
+    expect(db.q).toMatchInlineSnapshot(
+      `"SELECT * FROM doc WHERE contents = ANY($1)"`,
+    );
+    expect(db.args).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          null,
+        ],
+      ]
+    `);
+  });
+
   it('should select by primary key', async () => {
     const selectById = typedDb.table('users').selectByPrimaryKey();
     const userDoe = await selectById(db, {
