@@ -21,6 +21,12 @@ INSERT INTO doc(id, created_by, title, contents) VALUES (
     'd0e23a20-1f62-4f80-ad29-3ad48a03a47f', -- Jane Doe
     'Vision 2023',
     'Future so bright'
+),
+(
+    '98765432-1f62-4f80-ad29-3ad48a03a36e',
+    'dee5e220-1f62-4f80-ad29-3ad48a03a36e', -- John Deere,
+    'Blank Slate',
+    null
 );
 
 INSERT INTO COMMENT(id, doc_id, author_id, created_at, modified_at, metadata, content_md, statuses) VALUES (
