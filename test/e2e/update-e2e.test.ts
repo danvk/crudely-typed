@@ -113,6 +113,10 @@ describe('update e2e', () => {
     `);
     expect(await docTable.select()(db)).toMatchObject([
       {
+        title: 'Blank Slate',
+        contents: null,
+      },
+      {
         title: 'Annual Plan for 2022',
         contents: 'Looking gloomy',
       },
@@ -189,10 +193,12 @@ describe('update e2e', () => {
     expect(await update(db, {}, {contents: 'This and that'})).toMatchObject([
       {title: 'Annual Plan for 2022', contents: 'This and that'},
       {title: 'Vision 2023', contents: 'This and that'},
+      {title: 'Blank Slate', contents: 'This and that'},
     ]);
     expect(await getAllDocs(db)).toMatchObject([
       {title: 'Annual Plan for 2022', contents: 'This and that'},
       {title: 'Vision 2023', contents: 'This and that'},
+      {title: 'Blank Slate', contents: 'This and that'},
     ]);
   });
 
@@ -214,6 +220,7 @@ describe('update e2e', () => {
     ]);
 
     expect(await getAllDocs(db)).toMatchObject([
+      {title: 'Blank Slate', contents: null},
       {title: 'Annual Plan for 2022', contents: 'To Be Written'},
       {title: 'Vision 2023', contents: 'To Be Written'},
     ]);
@@ -237,6 +244,7 @@ describe('update e2e', () => {
     ]);
 
     expect(await getAllDocs(db)).toMatchObject([
+      {title: 'Blank Slate', contents: null},
       {title: 'Annual Plan for 2022', contents: 'To Be Written'},
       {title: 'Vision 2023', contents: 'To Be Written'},
     ]);

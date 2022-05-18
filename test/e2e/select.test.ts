@@ -300,6 +300,17 @@ describe('select e2e ', () => {
             "id": "01234b31-1f62-4f80-ad29-3ad48a03a36e",
             "title": "Vision 2023",
           },
+          Object {
+            "author": Object {
+              "id": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+              "name": "John Deere",
+              "pronoun": "he/him",
+            },
+            "contents": null,
+            "created_by": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+            "id": "98765432-1f62-4f80-ad29-3ad48a03a36e",
+            "title": "Blank Slate",
+          },
         ]
       `);
     });
