@@ -610,6 +610,7 @@ class Update<
       const setSql = dynamicSetClauses.join(', ');
       let query = `UPDATE ${this.table} SET ${setSql}${whereClause}${limitClause} RETURNING *`;
       query = updateQueryWithIsNull(query, whereVals, whereNames);
+      console.log(query);
       const result = await db.query(query, vals);
       if (this.isSingular) {
         return result.rowCount === 0 ? null : result.rows[0];

@@ -94,6 +94,21 @@ describe('update', () => {
     `);
   });
 
+  it('should update a null column', async () => {
+    const update = docTable.update({where: ['title']});
+    await update(mockDb, {title: null}, {title: 'Unknown'});
+
+    expect(mockDb.q).toMatchInlineSnapshot(
+      `"UPDATE doc SET (title IS NULL OR title = $2) WHERE title = $1 RETURNING *"`,
+    );
+    expect(mockDb.args).toMatchInlineSnapshot(`
+      Array [
+        null,
+        "Unknown",
+      ]
+    `);
+  });
+
   it('should update with fixed columns', async () => {
     const update = docTable.update({set: ['contents'], where: ['title']});
     await update(

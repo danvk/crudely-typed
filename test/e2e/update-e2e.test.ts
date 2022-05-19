@@ -127,6 +127,20 @@ describe('update e2e', () => {
     ]);
   });
 
+  it.only('should update with a where null clause', async () => {
+    const updateDocByContents = docTable.update({where: ['contents']});
+    const filledOutDocs = await updateDocByContents(
+      db,
+      {contents: null},
+      {contents: 'to be written'},
+    );
+    expect(filledOutDocs).toMatchInlineSnapshot();
+
+    const doc = await getDocByTitle(db, {title: 'Blank Slate'});
+    expect(doc).toHaveLength(1);
+    expect(doc[0].contents).toEqual('to be written');
+  });
+
   it('should update with fixed columns', async () => {
     const update = docTable.update({set: ['contents'], where: ['title']});
     expect(
