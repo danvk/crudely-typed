@@ -50,7 +50,7 @@ describe('delete unit', () => {
     const deleteByTitle = docTable.delete({where: ['title']});
     await deleteByTitle(mockDb, {title: null});
     expect(mockDb.q).toMatchInlineSnapshot(
-      `"DELETE FROM doc WHERE title = $1 RETURNING *"`,
+      `"DELETE FROM doc WHERE (title IS NULL OR title = $1) RETURNING *"`,
     );
     expect(mockDb.args).toMatchInlineSnapshot(`
       Array [

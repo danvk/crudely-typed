@@ -643,11 +643,13 @@ class Delete<TableT, WhereCols = null, WhereAnyCols = never, LimitOne = false> {
 
     const whereKeys: string[] = [];
     const whereClauses: string[] = [];
+    const whereNames: string[] = [];
     if (this.whereCols) {
       for (const col of this.whereCols as unknown as string[]) {
         whereKeys.push(col);
         const n = placeholder++;
         whereClauses.push(`${col} = $${n}`);
+        whereNames.push(col);
       }
     }
     if (this.whereAnyCols) {
@@ -656,6 +658,7 @@ class Delete<TableT, WhereCols = null, WhereAnyCols = never, LimitOne = false> {
         whereKeys.push(col);
         const n = placeholder++;
         whereClauses.push(`${col} = ANY($${n})`);
+        whereNames.push(col);
       }
     }
     const whereClause = whereClauses.length
@@ -672,7 +675,8 @@ class Delete<TableT, WhereCols = null, WhereAnyCols = never, LimitOne = false> {
           ? Array.from(whereObj[col])
           : whereObj[col],
       );
-      const result = await db.query(query, vals);
+      const thisQuery = updateQueryWithIsNull(query, vals, whereNames);
+      const result = await db.query(thisQuery, vals);
       if (this.isSingular) {
         return result.rowCount === 0 ? null : result.rows[0];
       }
