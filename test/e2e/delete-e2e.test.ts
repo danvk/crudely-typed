@@ -6,7 +6,7 @@ const typedDb = new TypedSQL(tables);
 
 // const userTable = typedDb.table('users');
 const commentsTable = typedDb.table('comment');
-// const docTable = typedDb.table('doc');
+const docTable = typedDb.table('doc');
 
 const COMMENT1_ID = '01234567-1f62-4f80-ad29-3ad48a03a36e';
 const COMMENT2_ID = '12345678-1f62-4f80-ad29-3ad48a03a36e';
@@ -35,6 +35,22 @@ describe('delete e2e', () => {
     const finalComments = await getAllComments(db);
     expect(finalComments).toHaveLength(1);
     expect(finalComments).toMatchObject([{id: COMMENT2_ID}]);
+  });
+
+  it('should delete rows with a null value', async () => {
+    const deleteByContents = docTable.delete({where: ['contents']});
+    const deleted = await deleteByContents(db, {contents: null});
+    expect(deleted).toHaveLength(1);
+    expect(deleted).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "contents": null,
+          "created_by": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+          "id": "98765432-1f62-4f80-ad29-3ad48a03a36e",
+          "title": "Blank Slate",
+        },
+      ]
+    `);
   });
 
   describe('delete multiple', () => {
