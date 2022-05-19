@@ -113,6 +113,21 @@ describe('update', () => {
     `);
   });
 
+  it('should update with fixed columns and a where null clause', async () => {
+    const update = docTable.update({set: ['created_by'], where: ['title']});
+    await update(mockDb, {title: null}, {created_by: 'Unknown'});
+
+    expect(mockDb.q).toMatchInlineSnapshot(
+      `"UPDATE doc SET created_by = $1 WHERE (title IS NULL OR title = $2) RETURNING *"`,
+    );
+    expect(mockDb.args).toMatchInlineSnapshot(`
+      Array [
+        "Unknown",
+        null,
+      ]
+    `);
+  });
+
   it('should update with fixed columns and limitOne', async () => {
     const update = docTable.update({
       set: ['contents'],
