@@ -127,14 +127,23 @@ describe('update e2e', () => {
     ]);
   });
 
-  it.only('should update with a where null clause', async () => {
+  it('should update with a where null clause', async () => {
     const updateDocByContents = docTable.update({where: ['contents']});
     const filledOutDocs = await updateDocByContents(
       db,
       {contents: null},
       {contents: 'to be written'},
     );
-    expect(filledOutDocs).toMatchInlineSnapshot();
+    expect(filledOutDocs).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "contents": "to be written",
+          "created_by": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+          "id": "98765432-1f62-4f80-ad29-3ad48a03a36e",
+          "title": "Blank Slate",
+        },
+      ]
+    `);
 
     const doc = await getDocByTitle(db, {title: 'Blank Slate'});
     expect(doc).toHaveLength(1);

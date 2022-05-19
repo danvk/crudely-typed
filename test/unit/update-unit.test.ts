@@ -99,10 +99,26 @@ describe('update', () => {
     await update(mockDb, {title: null}, {title: 'Unknown'});
 
     expect(mockDb.q).toMatchInlineSnapshot(
-      `"UPDATE doc SET (title IS NULL OR title = $2) WHERE title = $1 RETURNING *"`,
+      `"UPDATE doc SET title = $2 WHERE (title IS NULL OR title = $1) RETURNING *"`,
     );
     expect(mockDb.args).toMatchInlineSnapshot(`
       Array [
+        null,
+        "Unknown",
+      ]
+    `);
+  });
+
+  it('should update two null columns', async () => {
+    const update = docTable.update({where: ['title', 'contents']});
+    await update(mockDb, {title: null, contents: null}, {title: 'Unknown'});
+
+    expect(mockDb.q).toMatchInlineSnapshot(
+      `"UPDATE doc SET title = $3 WHERE (title IS NULL OR title = $1) AND (contents IS NULL OR contents = $2) RETURNING *"`,
+    );
+    expect(mockDb.args).toMatchInlineSnapshot(`
+      Array [
+        null,
         null,
         "Unknown",
       ]

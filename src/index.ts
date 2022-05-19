@@ -241,14 +241,15 @@ function updateQueryWithIsNull(
   whereNames: string[],
 ): string {
   let thisQuery = query;
+  const whereIdx = query.indexOf('WHERE'); // only tweak WHERE clause, not SET clause for UPDATE.
   whereValues.forEach((value, i) => {
     if (value === null || (Array.isArray(value) && value.includes(null))) {
       const name = whereNames[i];
       let pat = `${name} = $`;
-      let idx = thisQuery.indexOf(pat);
+      let idx = thisQuery.indexOf(pat, whereIdx);
       if (idx === -1) {
         pat = `${name} = ANY($`;
-        idx = thisQuery.indexOf(pat);
+        idx = thisQuery.indexOf(pat, whereIdx);
       }
       if (idx >= 0) {
         const pre = thisQuery.slice(0, idx);
