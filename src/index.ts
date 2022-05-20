@@ -232,6 +232,40 @@ type Join<TableSchemaT, Joins> = {
 
 type Result<T, IsSingular> = IsSingular extends true ? T | null : T[];
 
+// In the case that the user is trying to match against a NULL value, we
+// need to replace "col = $1" with "col IS NULL". We keep the "col = $1"
+// clause, even though it can never match, to avoid having to renumber.
+function updateQueryWithIsNull(
+  query: string,
+  whereValues: any[],
+  whereNames: string[],
+): string {
+  let thisQuery = query;
+  const whereIdx = query.indexOf('WHERE'); // only tweak WHERE clause, not SET clause for UPDATE.
+  whereValues.forEach((value, i) => {
+    if (value === null || (Array.isArray(value) && value.includes(null))) {
+      const name = whereNames[i];
+      let pat = `${name} = $`;
+      let idx = thisQuery.indexOf(pat, whereIdx);
+      if (idx === -1) {
+        pat = `${name} = ANY($`;
+        idx = thisQuery.indexOf(pat, whereIdx);
+      }
+      if (idx >= 0) {
+        const pre = thisQuery.slice(0, idx);
+        const post = thisQuery.slice(idx + pat.length);
+        const m = /^(\d+)(.*)/.exec(post);
+        if (!m) {
+          throw new Error('Unable to match null in ' + query);
+        }
+        const [, dig, rest] = m;
+        thisQuery = `${pre}(${name} IS NULL OR ${pat}${dig})${rest}`;
+      }
+    }
+  });
+  return thisQuery;
+}
+
 class Select<
   TableSchemaT,
   TableT,
@@ -298,6 +332,7 @@ class Select<
       });
       query += joins.join('');
     }
+    const whereNames: string[] = [];
     const whereKeys: string[] = [];
     const whereClauses: string[] = [];
     const tab = this.joins ? 't1.' : '';
@@ -307,7 +342,9 @@ class Select<
         const n = whereKeys.length;
         // XXX pg-promise requires a cast here for UUID columns (${tab}${col}::text)
         //     while node-postgres does not require it.
-        whereClauses.push(`${tab}${col} = $${n}`);
+        const name = `${tab}${col}`;
+        whereClauses.push(`${name} = $${n}`);
+        whereNames.push(name);
       }
     }
     if (this.whereAnyCols) {
@@ -315,7 +352,9 @@ class Select<
         const col = anyCol.__any;
         whereKeys.push(col);
         const n = whereKeys.length;
+        const name = `${tab}${col}`;
         whereClauses.push(`${tab}${col} = ANY($${n})`);
+        whereNames.push(name);
       }
     }
     if (whereClauses.length) {
@@ -331,7 +370,9 @@ class Select<
           ? Array.from(whereObj[col])
           : whereObj[col],
       );
-      const result = await db.query(query, where);
+      const thisQuery = updateQueryWithIsNull(query, where, whereNames);
+
+      const result = await db.query(thisQuery, where);
       if (this.isSingular) {
         if (result.rowCount === 0) {
           return null;
@@ -501,11 +542,13 @@ class Update<
 
     const whereKeys: string[] = [];
     const whereClauses: string[] = [];
+    const whereNames: string[] = [];
     if (this.whereCols) {
       for (const col of this.whereCols as unknown as string[]) {
         whereKeys.push(col);
         const n = placeholder++;
         whereClauses.push(`${col} = $${n}`);
+        whereNames.push(col);
       }
     }
     if (this.whereAnyCols) {
@@ -514,6 +557,7 @@ class Update<
         whereKeys.push(col);
         const n = placeholder++;
         whereClauses.push(`${col} = ANY($${n})`);
+        whereNames.push(col);
       }
     }
     const whereClause = whereClauses.length
@@ -528,16 +572,14 @@ class Update<
       const query = `UPDATE ${this.table} SET ${setSql}${whereClause}${limitClause} RETURNING *`;
 
       return async (db, whereObj: any, updateObj: any) => {
-        const vals = setCols
-          .map(col => updateObj[col])
-          .concat(
-            whereKeys.map(col =>
-              whereObj[col] instanceof Set
-                ? Array.from(whereObj[col])
-                : whereObj[col],
-            ),
-          );
-        const result = await db.query(query, vals);
+        const whereVals = whereKeys.map(col =>
+          whereObj[col] instanceof Set
+            ? Array.from(whereObj[col])
+            : whereObj[col],
+        );
+        const vals = setCols.map(col => updateObj[col]).concat(whereVals);
+        const thisQuery = updateQueryWithIsNull(query, whereVals, whereNames);
+        const result = await db.query(thisQuery, vals);
         if (this.isSingular) {
           return result.rowCount === 0 ? null : result.rows[0];
         }
@@ -551,13 +593,12 @@ class Update<
     return async (db, whereObj: any, updateObj: any) => {
       // TODO: maybe better to get this from the schema?
       const dynamicSetCols = Object.keys(updateObj);
-      const vals = whereKeys
-        .map(col =>
-          whereObj[col] instanceof Set
-            ? Array.from(whereObj[col])
-            : whereObj[col],
-        )
-        .concat(dynamicSetCols.map(col => updateObj[col]));
+      const whereVals = whereKeys.map(col =>
+        whereObj[col] instanceof Set
+          ? Array.from(whereObj[col])
+          : whereObj[col],
+      );
+      const vals = whereVals.concat(dynamicSetCols.map(col => updateObj[col]));
 
       let dynamicPlaceholder = placeholder;
       const dynamicSetKeys: string[] = [];
@@ -568,7 +609,9 @@ class Update<
         dynamicSetClauses.push(`${col} = $${n}`);
       }
       const setSql = dynamicSetClauses.join(', ');
-      const query = `UPDATE ${this.table} SET ${setSql}${whereClause}${limitClause} RETURNING *`;
+      let query = `UPDATE ${this.table} SET ${setSql}${whereClause}${limitClause} RETURNING *`;
+      query = updateQueryWithIsNull(query, whereVals, whereNames);
+      console.log(query);
       const result = await db.query(query, vals);
       if (this.isSingular) {
         return result.rowCount === 0 ? null : result.rows[0];
@@ -600,11 +643,13 @@ class Delete<TableT, WhereCols = null, WhereAnyCols = never, LimitOne = false> {
 
     const whereKeys: string[] = [];
     const whereClauses: string[] = [];
+    const whereNames: string[] = [];
     if (this.whereCols) {
       for (const col of this.whereCols as unknown as string[]) {
         whereKeys.push(col);
         const n = placeholder++;
         whereClauses.push(`${col} = $${n}`);
+        whereNames.push(col);
       }
     }
     if (this.whereAnyCols) {
@@ -613,6 +658,7 @@ class Delete<TableT, WhereCols = null, WhereAnyCols = never, LimitOne = false> {
         whereKeys.push(col);
         const n = placeholder++;
         whereClauses.push(`${col} = ANY($${n})`);
+        whereNames.push(col);
       }
     }
     const whereClause = whereClauses.length
@@ -629,7 +675,8 @@ class Delete<TableT, WhereCols = null, WhereAnyCols = never, LimitOne = false> {
           ? Array.from(whereObj[col])
           : whereObj[col],
       );
-      const result = await db.query(query, vals);
+      const thisQuery = updateQueryWithIsNull(query, vals, whereNames);
+      const result = await db.query(thisQuery, vals);
       if (this.isSingular) {
         return result.rowCount === 0 ? null : result.rows[0];
       }

@@ -6,7 +6,7 @@ const typedDb = new TypedSQL(tables);
 
 const userTable = typedDb.table('users');
 // const commentsTable = typedDb.table('comment');
-// const docTable = typedDb.table('doc');
+const docTable = typedDb.table('doc');
 
 describe('delete unit', () => {
   it('should delete all entries', async () => {
@@ -42,6 +42,29 @@ describe('delete unit', () => {
           "id1",
           "id2",
         ],
+      ]
+    `);
+  });
+
+  it('should delete entries with null values', async () => {
+    const deleteByTitle = docTable.delete({where: ['title']});
+    await deleteByTitle(mockDb, {title: null});
+    expect(mockDb.q).toMatchInlineSnapshot(
+      `"DELETE FROM doc WHERE (title IS NULL OR title = $1) RETURNING *"`,
+    );
+    expect(mockDb.args).toMatchInlineSnapshot(`
+      Array [
+        null,
+      ]
+    `);
+
+    await deleteByTitle(mockDb, {title: 'not-null'});
+    expect(mockDb.q).toMatchInlineSnapshot(
+      `"DELETE FROM doc WHERE title = $1 RETURNING *"`,
+    );
+    expect(mockDb.args).toMatchInlineSnapshot(`
+      Array [
+        "not-null",
       ]
     `);
   });

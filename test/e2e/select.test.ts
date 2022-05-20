@@ -140,6 +140,20 @@ describe('select e2e ', () => {
     ).toMatchInlineSnapshot(`Array []`);
   });
 
+  it('should select by a column with a null value', async () => {
+    const selectDocByContent = docTable.select({where: ['contents']});
+    const nullDocs = await selectDocByContent(db, {contents: null});
+    expect(nullDocs).toHaveLength(1);
+    expect(db.q).toMatchInlineSnapshot(
+      `"SELECT * FROM doc WHERE (contents IS NULL OR contents = $1)"`,
+    );
+    expect(db.args).toMatchInlineSnapshot(`
+      Array [
+        null,
+      ]
+    `);
+  });
+
   it('should allow selecting by a set of possible values', async () => {
     const selectAnyOf = usersTable.select({where: [any('id')]});
 
@@ -177,6 +191,32 @@ describe('select e2e ', () => {
       ],
     });
     expect(usersArray).toEqual(users1);
+  });
+
+  it('should select by a set of values that includes null', async () => {
+    const selectAnyDoc = docTable.select({where: [any('contents')]});
+    const nullDocs = await selectAnyDoc(db, {contents: [null]});
+    expect(nullDocs).toHaveLength(1);
+    expect(nullDocs).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "contents": null,
+          "created_by": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+          "id": "98765432-1f62-4f80-ad29-3ad48a03a36e",
+          "title": "Blank Slate",
+        },
+      ]
+    `);
+    expect(db.q).toMatchInlineSnapshot(
+      `"SELECT * FROM doc WHERE (contents IS NULL OR contents = ANY($1))"`,
+    );
+    expect(db.args).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          null,
+        ],
+      ]
+    `);
   });
 
   it('should select by primary key', async () => {
@@ -249,6 +289,24 @@ describe('select e2e ', () => {
     `);
   });
 
+  it('should select by a mix of null and non-null values', async () => {
+    const selectDocByContent = docTable.select({where: ['contents', 'title']});
+    const nullDocs = await selectDocByContent(db, {
+      contents: null,
+      title: 'Blank Slate',
+    });
+    expect(nullDocs).toHaveLength(1);
+    expect(db.q).toMatchInlineSnapshot(
+      `"SELECT * FROM doc WHERE (contents IS NULL OR contents = $1) AND title = $2"`,
+    );
+    expect(db.args).toMatchInlineSnapshot(`
+      Array [
+        null,
+        "Blank Slate",
+      ]
+    `);
+  });
+
   it('should allow multiple plural where clauses', async () => {
     const select = commentsTable.select({
       where: [any('author_id'), any('doc_id')],
@@ -299,6 +357,17 @@ describe('select e2e ', () => {
             "created_by": "d0e23a20-1f62-4f80-ad29-3ad48a03a47f",
             "id": "01234b31-1f62-4f80-ad29-3ad48a03a36e",
             "title": "Vision 2023",
+          },
+          Object {
+            "author": Object {
+              "id": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+              "name": "John Deere",
+              "pronoun": "he/him",
+            },
+            "contents": null,
+            "created_by": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+            "id": "98765432-1f62-4f80-ad29-3ad48a03a36e",
+            "title": "Blank Slate",
           },
         ]
       `);
@@ -465,6 +534,41 @@ describe('select e2e ', () => {
             "sentiment": "snarky",
           },
         }
+      `);
+    });
+
+    it('should join with a null where clause', async () => {
+      const select = docTable.select({
+        where: ['contents', 'title'],
+        join: {author: 'created_by'},
+      });
+      const nullDocsWithAuthor = await select(db, {
+        contents: null,
+        title: 'Blank Slate',
+      });
+      expect(nullDocsWithAuthor).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "author": Object {
+              "id": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+              "name": "John Deere",
+              "pronoun": "he/him",
+            },
+            "contents": null,
+            "created_by": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+            "id": "98765432-1f62-4f80-ad29-3ad48a03a36e",
+            "title": "Blank Slate",
+          },
+        ]
+      `);
+      expect(db.q).toMatchInlineSnapshot(
+        `"SELECT t1.*, to_jsonb(t2.*) as author FROM doc as t1 JOIN users AS t2 ON t1.created_by = t2.id WHERE (t1.contents IS NULL OR t1.contents = $1) AND t1.title = $2"`,
+      );
+      expect(db.args).toMatchInlineSnapshot(`
+        Array [
+          null,
+          "Blank Slate",
+        ]
       `);
     });
   });

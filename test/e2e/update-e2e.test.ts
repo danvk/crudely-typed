@@ -113,6 +113,10 @@ describe('update e2e', () => {
     `);
     expect(await docTable.select()(db)).toMatchObject([
       {
+        title: 'Blank Slate',
+        contents: null,
+      },
+      {
         title: 'Annual Plan for 2022',
         contents: 'Looking gloomy',
       },
@@ -121,6 +125,29 @@ describe('update e2e', () => {
         contents: 'Looking gloomy',
       },
     ]);
+  });
+
+  it('should update with a where null clause', async () => {
+    const updateDocByContents = docTable.update({where: ['contents']});
+    const filledOutDocs = await updateDocByContents(
+      db,
+      {contents: null},
+      {contents: 'to be written'},
+    );
+    expect(filledOutDocs).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "contents": "to be written",
+          "created_by": "dee5e220-1f62-4f80-ad29-3ad48a03a36e",
+          "id": "98765432-1f62-4f80-ad29-3ad48a03a36e",
+          "title": "Blank Slate",
+        },
+      ]
+    `);
+
+    const doc = await getDocByTitle(db, {title: 'Blank Slate'});
+    expect(doc).toHaveLength(1);
+    expect(doc[0].contents).toEqual('to be written');
   });
 
   it('should update with fixed columns', async () => {
@@ -189,10 +216,12 @@ describe('update e2e', () => {
     expect(await update(db, {}, {contents: 'This and that'})).toMatchObject([
       {title: 'Annual Plan for 2022', contents: 'This and that'},
       {title: 'Vision 2023', contents: 'This and that'},
+      {title: 'Blank Slate', contents: 'This and that'},
     ]);
     expect(await getAllDocs(db)).toMatchObject([
       {title: 'Annual Plan for 2022', contents: 'This and that'},
       {title: 'Vision 2023', contents: 'This and that'},
+      {title: 'Blank Slate', contents: 'This and that'},
     ]);
   });
 
@@ -214,6 +243,7 @@ describe('update e2e', () => {
     ]);
 
     expect(await getAllDocs(db)).toMatchObject([
+      {title: 'Blank Slate', contents: null},
       {title: 'Annual Plan for 2022', contents: 'To Be Written'},
       {title: 'Vision 2023', contents: 'To Be Written'},
     ]);
@@ -237,6 +267,7 @@ describe('update e2e', () => {
     ]);
 
     expect(await getAllDocs(db)).toMatchObject([
+      {title: 'Blank Slate', contents: null},
       {title: 'Annual Plan for 2022', contents: 'To Be Written'},
       {title: 'Vision 2023', contents: 'To Be Written'},
     ]);
