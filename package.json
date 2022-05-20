@@ -1,6 +1,6 @@
 {
   "name": "crudely-typed",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Simple \"everyday CRUD\" Postgres queries with perfect TypeScript types",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
