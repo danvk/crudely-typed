@@ -5,6 +5,11 @@
 Simple "everyday CRUD" Postgres queries with perfect TypeScript types.
 Zero dependencies. Designed to work with [pg-to-ts][] and [node-postgres][].
 
+For more information and demos, check out:
+
+- [TypeScript and SQL: Six Ways to Bridge the Divide][post] (2023 blog post)
+- [TypeScript and the Database: Who Owns the Types?][video] (2022 TS Congress talk; 30 minutes)
+
 ## Quickstart
 
 Install [pg-to-ts][] and this library, and generate a schema file:
@@ -408,3 +413,5 @@ posts may be helpful for understanding some of the techniques being used:
 [pg-to-ts]: https://github.com/danvk/pg-to-ts
 [node-postgres]: https://github.com/brianc/node-postgres
 [dt]: https://github.com/DefinitelyTyped/DefinitelyTyped
+[post]: https://effectivetypescript.com/2023/08/29/sql/
+[video]: https://portal.gitnation.org/contents/typescript-and-the-database-who-owns-the-types
